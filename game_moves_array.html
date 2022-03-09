@@ -1,0 +1,401 @@
+<!doctype html>
+<title>Game Moves Array</title>
+
+<html>
+
+    <script src="prism.js"></script>
+    <link href = "themes/prism.css" rel="stylesheet" />
+    <link href = "css/mdw.css"      rel="stylesheet" type = "text/css" />
+
+    
+    <body>
+
+        <nav class="col-1">
+        
+<mdw_lhs_nav>
+<div style="text-align: center;">Navigation</div><hr>    
+<div style="text-align: center;"><a href="index.html" target="_top">Home</a></div>    
+<div style="text-align: center;"><a href="index.html#Description" target="_top">Description</a></div>    
+<div style="text-align: center;"><a href="index.html#Demo Video" target="_top">Demo Video</a></div>    
+<div style="text-align: center;"><a href="index.html#Features" target="_top">Features</a></div>    
+<div style="text-align: center;"><a href="index.html#Created by" target="_top">Created by</a></div>    
+<div style="text-align: center;"><a href="index.html#Created with" target="_top">Created with</a></div>    
+<div style="text-align: center;"><a href="index.html#License" target="_top">License</a></div>    
+<div style="text-align: center;"><a href="index.html#Supported Systems" target="_top">Supported Systems</a></div>    
+<div style="text-align: center;"><a href="index.html#External Links" target="_top">External Links</a></div>    
+<div style="text-align: center;"><a href="index.html#Older Versions" target="_top">Older Versions</a></div>    
+<div style="text-align: center;"><a href="index.html#History" target="_top">History</a></div>    
+
+<br><div style="text-align: center;">Technical Descriptions</div><hr>    
+<div style="text-align: center;"><a href="project_organization.html" target="_top">Project Organization</a></div>    
+<div style="text-align: center;"><a href="logo.html" target="_top">Logo</a></div>    
+<div style="text-align: center;"><a href="timers.html" target="_top">Timers</a></div>    
+<div style="text-align: center;"><a href="events.html" target="_top">Events</a></div>    
+<div style="text-align: center;"><a href="input.html" target="_top">Input</a></div>    
+<div style="text-align: center;"><a href="game_moves_array.html" target="_top">Game Moves Array</a></div>    
+<div style="text-align: center;"><a href="sound.html" target="_top">Sound</a></div>    
+<div style="text-align: center;"><a href="display.html" target="_top">Display</a></div>    
+<div style="text-align: center;"><a href="tiles.html" target="_top">Tiles</a></div>    
+<div style="text-align: center;"><a href="level_array.html" target="_top">Level Array</a></div>    
+<div style="text-align: center;"><a href="netgame_main.html" target="_top">Netgame - Main</a></div>    
+<div style="text-align: center;"><a href="netgame_state.html" target="_top">Netgame - State</a></div>    
+<div style="text-align: center;"><a href="netgame_join.html" target="_top">Netgame - Join</a></div>    
+<div style="text-align: center;"><a href="netgame_status.html" target="_top">Netgame - Status</a></div>    
+<div style="text-align: center;"><a href="netgame_config.html" target="_top">Netgame - Config</a></div>    
+<div style="text-align: center;"><a href="netgame_packets.html" target="_top">Netgame - Packets</a></div>
+</mdw_lhs_nav>
+            
+        </nav>
+
+        
+        <div class="col-2">
+
+            <header>
+                <mh11>Purple Martians</mh11><hr>
+                <mh12>Technical Code Descriptions</mh12><hr>
+            </header>
+
+<mh3><hr></mh3>
+<mh8>Game Moves Array</mh8>
+<mh3><hr><mdw_file_toc> <a href="game_moves_array.html#Overview" target="_top">Overview</a>
+ <a href="game_moves_array.html#Variables" target="_top">Variables</a>
+ <a href="game_moves_array.html#Array elements" target="_top">Array elements</a>
+ <a href="game_moves_array.html#Types of game moves" target="_top">Types of game moves</a>
+ <a href="game_moves_array.html#How game_move entries are added in single player mode" target="_top">How game_move entries are added in single player mode</a>
+ <a href="game_moves_array.html#How game move entries are added in netgame" target="_top">How game move entries are added in netgame</a>
+ <a href="game_moves_array.html#How controls are set from game move array" target="_top">How controls are set from game move array</a>
+ <a href="game_moves_array.html#Run demo game mode" target="_top">Run demo game mode</a>
+</mdw_file_toc><hr></mh3>
+
+<a name="Overview"></a>
+<mh7>Overview</mh7>
+
+<mh3>
+The game moves array is the heart of the entire game control system.
+It contains every input from every player, indexed by the frame number.
+
+The array does not store an entry for every frame, only when a player's controls have changed.
+
+Players controls are never set directly, even in single player mode.
+When a player's control inputs change, a new entry is made into the array at that frame number.
+
+In another function, the game move array is used to set players controls when the frame numbers match. 
+
+This method is not needed for single player mode, but it is essential for netgame and demo game replaying.
+So, in the interests of keeping things consistant, it is also the method used for single player.
+</mh3>
+
+
+<br><a name="Variables"></a>
+<mh7>Variables</mh7>
+<pre><code class="language-cpp">extern int game_moves[1000000][4];</code></pre>
+
+<mh3>The game_moves array can hold 1 million game moves.
+
+1 million might seem excessive but with 8 players at 40fps, you could theoretically get 320 game moves per second.
+(In reality a human player can't press the controls fast enough to make 40 moves per second!)
+But at the worst case, that's 19200 game_moves per minute or 1,152,000 game_moves per hour.
+
+</mh3>
+
+<pre><code class="language-cpp">extern int game_move_entry_pos;</code></pre>
+<mh3>The current entry position of the array.
+When a new move is added, it is added at this position, and then this position is incremented.
+
+</mh3>
+
+<pre><code class="language-cpp">extern int game_move_current_pos;</code></pre>
+<mh3>The current read position of the array.
+Used only for demo game playing to keep track of the current read position of the array.
+</mh3>
+
+<br><a name="Array elements"></a>
+<mh7>Array elements</mh7>
+<mh3>
+Each game move entry has 4 elements:
+</mh3>
+
+<pre><code class="language-cpp">game_moves[x][0]; // frame_num
+game_moves[x][1]; // game move type
+game_moves[x][2]; // player number
+game_moves[x][3]; // comp_move
+</code></pre>
+<mh3>
+A player's controls are encoded into a bitfield called 'comp_move' with these values:
+</mh3>
+<pre><code class="language-cpp">1  [LEFT]
+2  [RIGHT]
+4  [UP]
+8  [DOWN]
+16 [JUMP]
+32 [FIRE]</code></pre>
+
+
+
+
+<br><a name="Types of game moves"></a>
+<mh7>Types of game moves</mh7>
+<mh3>   
+Type 5 - Regular game move 
+</mh3>
+<pre><code class="language-cpp">game_moves[x][0]; // frame_num
+game_moves[x][1]; // game_move type = 5 (regular game move)
+game_moves[x][2]; // player number
+game_moves[x][3]; // comp_move
+</code></pre>
+
+<mh3>   
+Type 6 - Level done
+</mh3>
+<pre><code class="language-cpp">game_moves[x][0]; // frame_num
+game_moves[x][1]; // game_move type = 6 (level done)
+game_moves[x][2]; // not used
+game_moves[x][3]; // not used
+</code></pre>
+
+
+<mh3>   
+Type 1 - Player state change
+</mh3>
+<pre><code class="language-cpp">game_moves[x][0]; // frame_num
+game_moves[x][1]; // game_move type = 1 (player state)
+game_moves[x][2]; // player number
+game_moves[x][3]; // val
+
+if ((val > 0) && (val < 16)) // make player active and set color
+{
+   players[p].active = 1;
+   players[p].color = val;
+}
+
+if (val > 63) // make player inactive and log reason
+{
+   players1[p].active = 0;
+   players1[p].quit_reason = val;
+}</code></pre>
+
+
+
+
+<br><a name="How game_move entries are added in single player mode"></a>
+<mh7>How game_move entries are added in single player mode</mh7>
+
+<pre><code class="language-cpp">void set_comp_move_from_player_key_check(int p)
+{
+   int cm = 0;
+   if (key[players1[p].left_key])  cm += 1;
+   if (key[players1[p].right_key]) cm += 2;
+   if (key[players1[p].up_key])    cm += 4;
+   if (key[players1[p].down_key])  cm += 8;
+   if (key[players1[p].jump_key])  cm += 16;
+   if (key[players1[p].fire_key])  cm += 32;
+   // if menu key ignore everything else and set to 127
+   if (key[players1[p].menu_key])  cm = 127;
+   if (key[ALLEGRO_KEY_ESCAPE])    cm = 127;
+   players1[p].comp_move = cm;
+}
+
+if (players1[p].comp_move != players1[p].old_comp_move)
+{
+   players1[p].old_comp_move = players1[p].comp_move;
+   add_game_move(frame_num, 5, p, players1[p].comp_move);
+}
+
+void add_game_move(int pc, int type, int data1, int data2)
+{
+   game_moves[game_move_entry_pos][0] = pc;
+   game_moves[game_move_entry_pos][1] = type;
+   game_moves[game_move_entry_pos][2] = data1;
+   game_moves[game_move_entry_pos][3] = data2;
+   game_move_entry_pos++;
+}</code></pre>
+
+
+
+
+
+
+
+<br><a name="How game move entries are added in netgame"></a>
+<mh7>How game move entries are added in netgame</mh7>
+<mh3>
+In netgame, things are done differently.
+
+In client mode, when a control changes happens, it's NOT put in the client's local game moves array, instead it's sent to the server:
+</mh3>
+
+<pre><code class="language-cpp">set_comp_move_from_player_key_check(p);
+if (players1[p].old_comp_move != players1[p].comp_move)  // players controls have changed
+{
+   players1[p].old_comp_move = players1[p].comp_move;
+   Packet("cdat");
+   PacketPut1ByteInt(p);
+   PacketPut4ByteInt(frame_num + control_lead_frames); // add control_lead_frames to frame_num
+   PacketPut1ByteInt(players1[p].comp_move);
+   ClientSend(packetbuffer, packetsize);
+}</code></pre>
+
+<mh3>
+When the server receives the packet, the client's game move is puts in the server's master game moves array.
+</mh3>
+
+<pre><code class="language-cpp">if(PacketRead("cdat"))
+{
+   int p = PacketGet1ByteInt();
+   int fn = PacketGet4ByteInt();
+   int cm = PacketGet1ByteInt();
+   add_game_move(fn, 5, p, cm); // add to game_move array
+}</code></pre>
+
+<mh3>
+The server synchronizes its master game moves array back to all the clients.
+
+When a client gets the data back from the server, it adds it to its local game_moves array.
+
+From there it is applied the same as any other entry in the game move array.
+
+For more details, see: <a href="netgame_main.html#Game Move Sync" target="_top">Netgame: Game Move Sync</a>
+</mh3>
+
+
+
+
+
+<br><a name="How controls are set from game move array"></a>
+<mh7>How controls are set from game move array</mh7>
+<mh3>
+This is common to all modes (single player, run demo game, netgame).
+
+Player's controls are set by reading game moves from the array.
+</mh3>
+<pre><code class="language-cpp">void set_controls_from_game_move(int p)
+{
+   // this will search back from entry position until it finds the first 'move' type
+   // entry that matches the player and is not in the future
+
+   int found = 0;
+   for (int g=game_move_entry_pos; g>0; g--)  // look back from entry pos
+      if ((game_moves[g][1] == 5) && (game_moves[g][2] == p)) // find first that matches type and p
+         if (game_moves[g][0] <= frame_num) // check to make sure its not in the future
+         {
+            set_controls_from_comp_move(g);
+            game_move_current_pos = g; // for savegame running only
+            g = 0; // break out of loop
+            found = 1;
+         }
+   if (!found) clear_controls(p); // if no match found (no move entry for player in entire game move array)
+}
+
+void set_controls_from_comp_move(int g)
+{
+   int p = game_moves[g][2];
+   int t = game_moves[g][3];
+   clear_controls(p);
+   if (t == 127) { t -= 127; players[p].menu = 1;  }
+   if (t > 31)   { t -= 32;  players[p].fire = 1;  }
+   if (t > 15)   { t -= 16;  players[p].jump = 1;  }
+   if (t > 7)    { t -= 8;   players[p].down = 1;  }
+   if (t > 3)    { t -= 4;   players[p].up = 1;    }
+   if (t > 1)    { t -= 2;   players[p].right = 1; }
+   if (t > 0)    { t -= 1;   players[p].left = 1;  }
+}</code></pre>
+
+<br><a name="Run demo game mode"></a>
+<mh7>Run demo game mode</mh7>
+<mh3>
+In this mode, the game moves array is loaded from a file.  After that, it's played back from the array in the exact same way as every other mode.
+
+
+When a game is saved to file, the game moves array is simply dumped with a small header of 4 integers:
+
+1 - num of game move entries
+2 - deathmatch_pbullets
+3 - deathmatch_pbullets_damage
+4 - suicide_pbullets
+
+The save game file extension is .gm.  If you look at it with a text editor, all you will see a list of numbers like this:
+</mh3>
+<pre><code class="language-cpp">'savegame.gm'
+30
+0
+5
+0
+0
+0
+4
+0
+0
+1
+0
+8
+0
+5
+0
+3</code></pre>
+
+<mh3>
+It is also saved as human readable text file like this:
+</mh3>
+<pre><code class="language-cpp">'savegame.txt'
+number of entries 30
+deathmatch_pbullets 0
+deathmatch_pbullets_damage 5
+suicide_pbullets 0
+[ gm][  pc][p][cm]
+[  0][   0]-------------START (level:4)------------- 
+[  1][   0]-------------PLAYER 0 ACTIVE (color:8)-- 
+[  2][   0][0][ 3]  [    ][    ][    ][  ][RIGHT][LEFT]
+[  3][   3][0][ 7]  [    ][    ][    ][UP][RIGHT][LEFT]
+[  4][   4][0][ 6]  [    ][    ][    ][UP][RIGHT][    ]
+[  5][   5][0][38]  [FIRE][    ][    ][UP][RIGHT][    ]
+[  6][   8][0][33]  [FIRE][    ][    ][  ][     ][LEFT]
+[  7][   9][0][ 1]  [    ][    ][    ][  ][     ][LEFT]
+[  8][  12][0][19]  [    ][JUMP][    ][  ][RIGHT][LEFT]
+[  9][  14][0][22]  [    ][JUMP][    ][UP][RIGHT][    ]
+[ 10][  15][0][38]  [FIRE][    ][    ][UP][RIGHT][    ]
+[ 11][  17][0][33]  [FIRE][    ][    ][  ][     ][LEFT]
+[ 12][  18][0][ 1]  [    ][    ][    ][  ][     ][LEFT]
+[ 13][  19][0][17]  [    ][JUMP][    ][  ][     ][LEFT]
+[ 14][  21][0][19]  [    ][JUMP][    ][  ][RIGHT][LEFT]
+[ 15][  23][0][ 6]  [    ][    ][    ][UP][RIGHT][    ]
+[ 16][  24][0][34]  [FIRE][    ][    ][  ][RIGHT][    ]
+[ 17][  25][0][33]  [FIRE][    ][    ][  ][     ][LEFT]
+[ 18][  26][0][ 1]  [    ][    ][    ][  ][     ][LEFT]
+[ 19][  27][0][17]  [    ][JUMP][    ][  ][     ][LEFT]
+[ 20][  29][0][18]  [    ][JUMP][    ][  ][RIGHT][    ]
+[ 21][  31][0][38]  [FIRE][    ][    ][UP][RIGHT][    ]
+[ 22][  33][0][32]  [FIRE][    ][    ][  ][     ][    ]
+[ 23][  34][0][49]  [FIRE][JUMP][    ][  ][     ][LEFT]
+[ 24][  36][0][17]  [    ][JUMP][    ][  ][     ][LEFT]
+[ 25][  37][0][19]  [    ][JUMP][    ][  ][RIGHT][LEFT]
+[ 26][  38][0][ 6]  [    ][    ][    ][UP][RIGHT][    ]
+[ 27][  42][0][ 1]  [    ][    ][    ][  ][     ][LEFT]
+[ 28][  43][0][ 0]  [    ][    ][    ][  ][     ][    ]
+[ 29][  45]-------------PLAYER 0 INACTIVE----------- 
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+               <footer>
+                <mh11>Purple Martians</mh11><hr>
+                <div id="copyright">
+                Copyright &copy; 2018, by <a href="mailto:mweiss001@gmail.com"> Michael David Weiss</a>
+                </div>
+            </footer>
+
+        </div>
+    </body>
+
+</html>
