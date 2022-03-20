@@ -66,6 +66,7 @@
  <a href="bullets.html#High Level Method" target="_top">High Level Method</a>
  <a href="bullets.html#My Brute Force Method" target="_top">My Brute Force Method</a>
  <a href="bullets.html#Conclusion" target="_top">Conclusion</a>
+ <a href="bullets.html#The Better Solution" target="_top">The Better Solution</a>
 </mdw_file_toc><hr></mh3>
 
 <a name="Original Method"></a>
@@ -442,6 +443,90 @@ Maybe there is an entirely different high level approach that did not even occur
 
 
 
+<br><a name="The Better Solution"></a>
+<mh7>The Better Solution</mh7>
+<mh3>
+After asking for help on the allegro.cc forums I was shown a much better method.
+
+Edgar Reynaldo showed me a quadratic equation to solve for t:
+</mh3>
+
+<pk1>
+Michael, assuming your theory and your math is correct, I solved for t. You'll still have to apply the quadratic equation to solve it though.
+
+ t^2(pvx^2 + pvy^2 - bv^2)
++t^1(2pxpvx + 2pypvy - 2bxpvx - 2bypvy)
++t^0(px^2 + bx^2 + py^2 + by^2 - 2bxpx - 2bypy)
+
+Just apply the quadratic equation now, and you have your values for t.
+
+</pk1>
+
+<mh3>
+
+Peter Hull showed me a similar method with slightly simpler math:
+</mh3>
+<pk1>
+I came up with a quadratic but not quite the same as ER's.
+It cuts down on the maths chores if you set the origin to be where the bullet starts,
+and have the player relative to that, ie. work with x = px - bx and y = py - by instead of (px,py) and (bx,by).
+
+The position of the player at time t is (x + pxinc *t, y + pyinc * t) and the bullet is (bxinc*t, byinc*t).
+Equate the x-coords and y-coords separately, that's three unknowns, bxinc, byinc and t, with two equations
+now add third equation bxinc^2 + byinc^2 = bspeed^2.
+
+bxinc*t = x + pxinc*t (1)
+byinc*t = y + pyinc*t (2)
+bxinc^2 + byinc^2 = bspeed^2 (3)
+
+I found it easiest to rewrite (3) as
+bxinc^2 * t^2 + byinc^2 * t^2 = bspeed^2 * t^2 (4)
+
+Square (1) and (2), substitute them in the LHS of (4)
+(x + pxinc*t)^2 + (y + pyinc*t)^2 = bspeed^2 * t^2
+
+Now you can expand the brackets and it's a quadratic in t.
+
+</pk1>
+
+<mh3>I did the math and came up with:
+
+A = pvx^2 + pvy^2 - bv^2
+B = 2xpvx + 2ypvy
+C = x^2 + y^2
+
+It is slightly simpler.
+
+This is how I patched it into my code:
+</mh3>
+<pre><code class="language-cpp">void fire_enemy_bulleta(int EN, int bullet_ans, int p)
+{
+   float bx = Efi[EN][0];
+   float by = Efi[EN][1];
+   float bv = Efi[EN][7];
+
+   float px  = players[p].PX;
+   float py  = players[p].PY;
+   float pvx = players[p].xinc;
+   float pvy = players[p].yinc;
+
+   // Edgar's method
+   //float A = pow(pvx,2) + pow(pvy,2) - pow(bv,2);
+   //float B = 2*(px*pvx) + 2*(py*pvy) -2*(bx*pvx) -2*(by*pvy);
+   //float C = pow(px,2) + pow(bx,2) + pow(py,2) + pow(by,2) - 2*(bx*px) -2*(by*py);
+
+   // Peter's method
+   float x = px-bx;
+   float y = py-by;
+   float A = pow(pvx,2) + pow(pvy,2) - pow(bv,2);
+   float B = 2*(x*pvx) + 2*(y*pvy);
+   float C = pow(x,2) + pow(y,2);
+
+   float t = ( -B - sqrt(pow(B,2) - 4*(A*C)) ) / (2*A);
+   al_fixed px1 = px + al_fixmul(pvx, al_ftofix(t)); // get player target position based on t
+   al_fixed py1 = py + al_fixmul(pvy, al_ftofix(t));
+   fire_enemy_bulletz(EN, bullet_ans, px1, py1);
+}</code></pre>
 
 
 
@@ -458,12 +543,23 @@ Maybe there is an entirely different high level approach that did not even occur
 
 
 
-               <footer>
-                <mh11>Purple Martians</mh11><hr>
+
+
+
+
+
+
+
+
+
+
+
+
+               <footer>                <mh11>Purple Martians</mh11><hr>
                 <div id="copyright">
-                Copyright &copy; 2018, by <a href="mailto:mweiss001@gmail.com"> Michael David Weiss</a>
+                Copyright &copy; 2022, by <a href="mailto:mweiss001@gmail.com"> Michael David Weiss</a>
                 </div>
-            </footer>
+</footer>
                 
                 
                 
